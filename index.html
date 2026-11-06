@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab Maya: Ekosistem Kelas 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles for App */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #1e293b; /* Dark backdrop for full screen */
+            margin: 0;
+            overflow: hidden; /* No scrolling */
+            touch-action: none; /* Prevent browser default touch actions like swipe to refresh */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* 16:9 Aspect Ratio Container */
+        #app-container {
+            position: relative;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (min-aspect-ratio: 16/9) {
+            #app-container {
+                width: calc(100vh * (16 / 9));
+                border-radius: 1rem;
+            }
+        }
+        @media (max-aspect-ratio: 16/9) {
+            #app-container {
+                height: calc(100vw * (9 / 16));
+                border-radius: 1rem;
+            }
+        }
+        
+        /* Fallback for pure mobile portrait - force filling */
+        @media (orientation: portrait) {
+            #app-container {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+            }
+        }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.5s ease-in forwards; }
+        .fade-out { animation: fadeOut 0.5s ease-out forwards; }
+        .bounce { animation: bounce 1s infinite; }
+        .pop { animation: pop 0.3s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Custom Scrollbar for inner content if slightly overflowed */
+        .inner-scroll {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #38bdf8 transparent;
+        }
+        
+        /* Hide all sections by default */
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <!-- SPLASH SCREEN -->
+        <div id="splash-screen" class="absolute inset-0 bg-sky-400 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-500">
+            <div class="text-6xl mb-4 bounce">🌍</div>
+            <h1 class="text-3xl md:text-5xl font-black mb-2 text-center text-yellow-300 drop-shadow-md">Lab Maya Interaktif</h1>
+            <p class="text-xl md:text-2xl font-bold mb-8 drop-shadow">Ekosistem Alami & Buatan</p>
+            
+            <div id="loading-container" class="w-64 h-6 bg-sky-600 rounded-full overflow-hidden border-2 border-white mb-4">
+                <div id="loading-bar" class="h-full bg-yellow-400 w-0 transition-all duration-300"></div>
+            </div>
+            <p id="loading-text" class="text-sm md:text-base font-bold">Memuat aset...</p>
+            
+            <button id="start-btn" class="hidden mt-6 bg-yellow-400 hover:bg-yellow-500 text-sky-900 font-black text-2xl py-3 px-8 rounded-full shadow-lg transform transition hover:scale-110 active:scale-95 border-4 border-yellow-200">
+                MULAI BELAJAR!
+            </button>
+        </div>
+
+        <!-- HEADER & TABS -->
+        <div class="bg-sky-500 text-white p-2 md:p-3 shadow-md flex justify-between items-center z-10 shrink-0">
+            <div class="font-black text-lg md:text-xl flex items-center gap-2">
+                <span>🌱</span> LAB EKOSISTEM
+            </div>
+            <!-- Navigation -->
+            <div class="flex space-x-1 md:space-x-2">
+                <button onclick="switchTab('teori')" class="nav-btn bg-sky-600 hover:bg-sky-400 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm transition shadow">Teori</button>
+                <button onclick="switchTab('prosedur')" class="nav-btn bg-sky-600 hover:bg-sky-400 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm transition shadow">Prosedur</button>
+                <button onclick="switchTab('simulasi')" class="nav-btn bg-yellow-400 text-sky-900 hover:bg-yellow-300 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm transition shadow">Simulasi</button>
+                <button onclick="switchTab('lkpd')" class="nav-btn bg-sky-600 hover:bg-sky-400 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm transition shadow">LKPD</button>
+                <button onclick="switchTab('pengembang')" class="nav-btn bg-sky-600 hover:bg-sky-400 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm transition shadow">Profil</button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 relative overflow-hidden bg-white/50 m-2 md:m-4 rounded-xl shadow-inner border-2 border-white flex flex-col">
+            
+            <!-- 1. TEORI -->
+            <div id="teori" class="tab-content flex-col w-full h-full p-4 md:p-6 inner-scroll pop active">
+                <h2 class="text-2xl md:text-3xl font-black text-sky-600 mb-4 flex items-center gap-2">📖 Mengenal Ekosistem</h2>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-sky-100 mb-4">
+                    <p class="text-gray-700 text-lg md:text-xl leading-relaxed">
+                        <b>Ekosistem</b> adalah tempat di mana makhluk hidup (seperti hewan dan tumbuhan) dan benda tak hidup (seperti air, tanah, dan udara) saling berinteraksi.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                    <div class="bg-green-100 p-4 rounded-xl border-2 border-green-300 shadow-sm flex flex-col">
+                        <h3 class="text-xl font-bold text-green-700 mb-2">🌿 Ekosistem Alami</h3>
+                        <p class="text-gray-700 mb-2">Tercipta oleh alam tanpa campur tangan manusia.</p>
+                        <div class="flex justify-around mt-auto text-4xl">
+                            <div class="text-center"><span title="Hutan">🌲</span><br><span class="text-sm font-bold">Hutan</span></div>
+                            <div class="text-center"><span title="Laut">🌊</span><br><span class="text-sm font-bold">Laut</span></div>
+                            <div class="text-center"><span title="Sungai">🏞️</span><br><span class="text-sm font-bold">Sungai</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-orange-100 p-4 rounded-xl border-2 border-orange-300 shadow-sm flex flex-col">
+                        <h3 class="text-xl font-bold text-orange-700 mb-2">🚜 Ekosistem Buatan</h3>
+                        <p class="text-gray-700 mb-2">Dibuat oleh manusia untuk memenuhi kebutuhannya.</p>
+                        <div class="flex justify-around mt-auto text-4xl">
+                            <div class="text-center"><span title="Sawah">🌾</span><br><span class="text-sm font-bold">Sawah</span></div>
+                            <div class="text-center"><span title="Akuarium">🐠</span><br><span class="text-sm font-bold">Akuarium</span></div>
+                            <div class="text-center"><span title="Taman">🏡</span><br><span class="text-sm font-bold">Taman</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. PROSEDUR -->
+            <div id="prosedur" class="tab-content flex-col w-full h-full p-4 md:p-6 inner-scroll pop">
+                <h2 class="text-2xl md:text-3xl font-black text-sky-600 mb-4">⚙️ Cara Menggunakan Lab</h2>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-sky-100 flex-1">
+                    <ul class="space-y-4 text-lg text-gray-700">
+                        <li class="flex items-start gap-3">
+                            <div class="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">1</div>
+                            <p>Baca bagian <b>Teori</b> untuk memahami apa itu ekosistem alami dan buatan.</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">2</div>
+                            <p>Buka tab <b>Simulasi</b>. Sebuah gambar ekosistem akan muncul di tengah layar.</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">3</div>
+                            <p>Pilih tombol <b>"Alami"</b> atau <b>"Buatan"</b> yang sesuai dengan gambar tersebut.</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">4</div>
+                            <p>Kumpulkan skor tertinggimu! Gunakan tombol <b>Reset</b> jika ingin mengulang.</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">5</div>
+                            <p>Terakhir, kerjakan soal pada tab <b>LKPD</b> untuk menguji pemahamanmu.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 3. SIMULASI -->
+            <div id="simulasi" class="tab-content flex-col w-full h-full p-2 md:p-4 pop">
+                <!-- Top Status Bar -->
+                <div class="flex justify-between items-center bg-white p-2 md:p-3 rounded-xl shadow mb-2 shrink-0">
+                    <div class="font-bold text-lg md:text-xl text-sky-700">Skor: <span id="sim-score" class="text-orange-500 text-2xl">0</span></div>
+                    <div class="font-bold text-lg text-gray-600">Soal: <span id="sim-progress">1/8</span></div>
+                    <button onclick="initSimulation()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 md:px-4 md:py-2 rounded-lg font-bold text-sm transition shadow flex items-center gap-1">
+                        🔄 <span class="hidden md:inline">Reset</span>
+                    </button>
+                </div>
+                
+                <!-- Game Stage -->
+                <div class="flex-1 bg-blue-50 rounded-xl border-4 border-dashed border-blue-200 flex flex-col items-center justify-center relative shadow-inner overflow-hidden">
+                    
+                    <!-- Feedback Overlay -->
+                    <div id="sim-feedback" class="absolute inset-0 z-10 hidden items-center justify-center bg-white/80 backdrop-blur-sm">
+                        <div id="feedback-icon" class="text-8xl scale-0 transition-transform duration-300">✅</div>
+                    </div>
+
+                    <!-- End Screen Overlay -->
+                    <div id="sim-end" class="absolute inset-0 z-20 hidden items-center justify-center bg-sky-900/90 text-white flex-col">
+                        <div class="text-6xl mb-4 bounce">🏆</div>
+                        <h2 class="text-3xl md:text-4xl font-black mb-2 text-yellow-400">Kerja Bagus!</h2>
+                        <p class="text-xl mb-6">Skor Akhir: <span id="final-score" class="font-black text-3xl"></span>/80</p>
+                        <button onclick="initSimulation()" class="bg-yellow-400 hover:bg-yellow-500 text-sky-900 font-black px-6 py-3 rounded-full shadow-lg transform transition hover:scale-105">Main Lagi</button>
+                    </div>
+
+                    <h3 class="text-lg md:text-xl font-bold text-gray-600 mb-2 md:mb-6 text-center">Ini ekosistem apa ya?</h3>
+                    
+                    <!-- Item Display -->
+                    <div id="sim-item-box" class="bg-white border-4 border-yellow-400 w-32 h-32 md:w-48 md:h-48 rounded-2xl shadow-xl flex flex-col items-center justify-center mb-6 md:mb-10 transform transition duration-300 hover:scale-105">
+                        <div id="sim-item-icon" class="text-6xl md:text-8xl mb-2">🌲</div>
+                        <div id="sim-item-name" class="font-black text-gray-700 text-lg md:text-xl text-center px-2">Hutan</div>
+                    </div>
+
+                    <!-- Choice Buttons -->
+                    <div class="flex w-full px-4 md:px-12 gap-4">
+                        <button onclick="checkAnswer('alami')" class="flex-1 bg-green-500 hover:bg-green-600 text-white p-4 md:p-6 rounded-2xl shadow-lg border-b-4 border-green-700 transform transition active:translate-y-2">
+                            <span class="block text-2xl md:text-4xl mb-1 md:mb-2">🌿</span>
+                            <span class="block font-black text-lg md:text-2xl">ALAMI</span>
+                        </button>
+                        <button onclick="checkAnswer('buatan')" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white p-4 md:p-6 rounded-2xl shadow-lg border-b-4 border-orange-700 transform transition active:translate-y-2">
+                            <span class="block text-2xl md:text-4xl mb-1 md:mb-2">🚜</span>
+                            <span class="block font-black text-lg md:text-2xl">BUATAN</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 4. LKPD -->
+            <div id="lkpd" class="tab-content flex-col w-full h-full p-4 md:p-6 inner-scroll pop">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl md:text-3xl font-black text-sky-600">📝 Kuis LKPD</h2>
+                    <button onclick="initLkpd()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow">🔄 Reset</button>
+                </div>
+                
+                <div id="lkpd-container" class="space-y-4 md:space-y-6">
+                    <!-- Soal generated by JS -->
+                </div>
+
+                <div id="lkpd-result" class="hidden mt-6 bg-green-100 border-2 border-green-400 p-4 rounded-xl text-center">
+                    <h3 class="text-2xl font-black text-green-700 mb-2">Nilai Kamu: <span id="lkpd-score-display">100</span></h3>
+                    <p class="text-gray-700">Luar biasa! Kamu sudah paham materi ekosistem.</p>
+                </div>
+
+                <button id="lkpd-submit" onclick="submitLkpd()" class="mt-6 w-full bg-sky-500 hover:bg-sky-600 text-white font-black text-xl py-3 rounded-xl shadow-lg border-b-4 border-sky-700 transform transition active:translate-y-1">
+                    KUMPULKAN JAWABAN
+                </button>
+            </div>
+
+            <!-- 5. PENGEMBANG -->
+            <div id="pengembang" class="tab-content flex-col items-center justify-center w-full h-full p-6 pop">
+                <div class="bg-white p-8 rounded-3xl shadow-xl border-4 border-sky-100 max-w-sm w-full text-center">
+                    <div class="w-24 h-24 bg-sky-200 rounded-full mx-auto mb-4 flex items-center justify-center text-5xl border-4 border-sky-400">
+                        👩‍🏫
+                    </div>
+                    <h2 class="text-2xl font-black text-gray-800 mb-1">Guru Kelas 3</h2>
+                    <p class="text-sky-600 font-bold mb-4">Pengembang Lab Maya</p>
+                    <div class="h-px bg-gray-200 w-full mb-4"></div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Media pembelajaran interaktif ini dirancang khusus untuk membantu siswa Sekolah Dasar memahami materi ekosistem secara menyenangkan dan praktis.
+                    </p>
+                    <div class="flex justify-center gap-2 text-2xl">
+                        <span>🌟</span><span>🌟</span><span>🌟</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* --- AUDIO SYSTEM (Web Audio API for Offline standalone) --- */
+        let audioCtx;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            
+            switch(type) {
+                case 'click':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                    break;
+                case 'correct':
+                    // Chime sound
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now); // A4
+                    osc.frequency.setValueAtTime(554.37, now + 0.1); // C#5
+                    osc.frequency.setValueAtTime(659.25, now + 0.2); // E5
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                    break;
+                case 'wrong':
+                    // Buzzer
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                    break;
+                case 'win':
+                    // Ta-da!
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(392, now); // G4
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.1);
+                    
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'square';
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.frequency.setValueAtTime(523.25, now + 0.15); // C5
+                    gain2.gain.setValueAtTime(0, now);
+                    gain2.gain.setValueAtTime(0.4, now + 0.15);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    
+                    osc.start(now); osc.stop(now + 0.15);
+                    osc2.start(now + 0.15); osc2.stop(now + 0.8);
+                    break;
+            }
+        }
+
+        /* --- SPLASH SCREEN LOGIC --- */
+        window.onload = () => {
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingText = document.getElementById('loading-text');
+            const startBtn = document.getElementById('start-btn');
+            const loadingContainer = document.getElementById('loading-container');
+            
+            // Fake loading process
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 20) + 10;
+                if (progress > 100) progress = 100;
+                loadingBar.style.width = progress + '%';
+                
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingText.style.display = 'none';
+                        loadingContainer.style.display = 'none';
+                        startBtn.classList.remove('hidden');
+                        startBtn.classList.add('pop');
+                    }, 400);
+                }
+            }, 300);
+
+            startBtn.addEventListener('click', () => {
+                initAudio();
+                playSound('win');
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('fade-out');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 500);
+                
+                // Initialize default components
+                initSimulation();
+                initLkpd();
+            });
+            
+            // Add sound to all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => playSound('click'));
+            });
+        };
+
+        /* --- TAB NAVIGATION --- */
+        function switchTab(tabId) {
+            // Update Tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            const selected = document.getElementById(tabId);
+            selected.classList.add('active');
+            
+            // Re-trigger animation
+            selected.classList.remove('pop');
+            void selected.offsetWidth; // trigger reflow
+            selected.classList.add('pop');
+
+            // Update Nav Buttons styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-yellow-400', 'text-sky-900', 'hover:bg-yellow-300');
+                btn.classList.add('bg-sky-600', 'text-white', 'hover:bg-sky-400');
+            });
+            const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+            if(activeBtn) {
+                activeBtn.classList.remove('bg-sky-600', 'text-white', 'hover:bg-sky-400');
+                activeBtn.classList.add('bg-yellow-400', 'text-sky-900', 'hover:bg-yellow-300');
+            }
+        }
+
+        /* --- SIMULATION LOGIC --- */
+        const simData = [
+            { id: 1, name: 'Hutan', icon: '🌲', type: 'alami' },
+            { id: 2, name: 'Sawah', icon: '🌾', type: 'buatan' },
+            { id: 3, name: 'Laut', icon: '🌊', type: 'alami' },
+            { id: 4, name: 'Akuarium', icon: '🐠', type: 'buatan' },
+            { id: 5, name: 'Sungai', icon: '🏞️', type: 'alami' },
+            { id: 6, name: 'Taman', icon: '🏡', type: 'buatan' },
+            { id: 7, name: 'Gurun', icon: '🐪', type: 'alami' },
+            { id: 8, name: 'Kolam Ikan', icon: '🐟', type: 'buatan' }
+        ];
+        
+        let simQueue = [];
+        let simScore = 0;
+        let simCurrentIndex = 0;
+
+        function initSimulation() {
+            // Shuffle data
+            simQueue = [...simData].sort(() => Math.random() - 0.5);
+            simScore = 0;
+            simCurrentIndex = 0;
+            
+            document.getElementById('sim-score').innerText = simScore;
+            document.getElementById('sim-end').classList.remove('flex');
+            document.getElementById('sim-end').classList.add('hidden');
+            
+            showNextSimItem();
+        }
+
+        function showNextSimItem() {
+            if (simCurrentIndex >= simQueue.length) {
+                // End game
+                document.getElementById('sim-end').classList.remove('hidden');
+                document.getElementById('sim-end').classList.add('flex', 'pop');
+                document.getElementById('final-score').innerText = simScore;
+                playSound('win');
+                return;
+            }
+
+            const item = simQueue[simCurrentIndex];
+            document.getElementById('sim-progress').innerText = `${simCurrentIndex + 1}/${simQueue.length}`;
+            
+            const iconEl = document.getElementById('sim-item-icon');
+            const nameEl = document.getElementById('sim-item-name');
+            const boxEl = document.getElementById('sim-item-box');
+            
+            iconEl.innerText = item.icon;
+            nameEl.innerText = item.name;
+            
+            // Animation reset
+            boxEl.classList.remove('pop');
+            void boxEl.offsetWidth;
+            boxEl.classList.add('pop');
+        }
+
+        function checkAnswer(selectedType) {
+            const currentItem = simQueue[simCurrentIndex];
+            const isCorrect = currentItem.type === selectedType;
+            
+            const feedback = document.getElementById('sim-feedback');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            
+            feedback.classList.remove('hidden');
+            feedback.classList.add('flex');
+            
+            if (isCorrect) {
+                simScore += 10;
+                document.getElementById('sim-score').innerText = simScore;
+                feedbackIcon.innerText = '✅';
+                playSound('correct');
+            } else {
+                feedbackIcon.innerText = '❌';
+                playSound('wrong');
+            }
+            
+            // Animate feedback icon
+            feedbackIcon.style.transform = 'scale(1)';
+            
+            setTimeout(() => {
+                feedbackIcon.style.transform = 'scale(0)';
+                setTimeout(() => {
+                    feedback.classList.remove('flex');
+                    feedback.classList.add('hidden');
+                    simCurrentIndex++;
+                    showNextSimItem();
+                }, 200);
+            }, 800);
+        }
+
+        /* --- LKPD LOGIC --- */
+        const lkpdData = [
+            {
+                q: "1. Ekosistem yang terjadi dengan sendirinya tanpa campur tangan manusia disebut...",
+                options: ["Ekosistem Buatan", "Ekosistem Alami", "Ekosistem Darat"],
+                a: 1
+            },
+            {
+                q: "2. Manakah di bawah ini yang merupakan contoh ekosistem buatan?",
+                options: ["Hutan dan Gunung", "Laut dan Sungai", "Sawah dan Akuarium"],
+                a: 2
+            },
+            {
+                q: "3. Apa tujuan manusia membuat ekosistem buatan?",
+                options: ["Memenuhi kebutuhan hidup", "Merusak alam", "Membuang sampah"],
+                a: 0
+            }
+        ];
+
+        function initLkpd() {
+            const container = document.getElementById('lkpd-container');
+            container.innerHTML = '';
+            document.getElementById('lkpd-result').classList.add('hidden');
+            document.getElementById('lkpd-submit').classList.remove('hidden');
+
+            lkpdData.forEach((item, index) => {
+                let optionsHtml = '';
+                item.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <label class="flex items-center p-3 rounded-lg border-2 border-gray-200 hover:bg-sky-50 cursor-pointer transition">
+                            <input type="radio" name="q${index}" value="${optIndex}" class="w-5 h-5 text-sky-500 form-radio mr-3">
+                            <span class="text-gray-700 font-bold">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-xl shadow-sm border border-sky-100';
+                div.innerHTML = `
+                    <p class="font-bold text-gray-800 text-lg mb-3">${item.q}</p>
+                    <div class="space-y-2 flex flex-col">
+                        ${optionsHtml}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function submitLkpd() {
+            let correct = 0;
+            let allAnswered = true;
+            
+            playSound('click');
+
+            lkpdData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const parentDiv = document.querySelector(`input[name="q${index}"]`).closest('.bg-white');
+                
+                if (selected) {
+                    if (parseInt(selected.value) === item.a) {
+                        correct++;
+                        parentDiv.classList.add('border-green-400', 'bg-green-50');
+                    } else {
+                        parentDiv.classList.add('border-red-400', 'bg-red-50');
+                    }
+                    // Disable inputs after submit
+                    document.querySelectorAll(`input[name="q${index}"]`).forEach(inp => inp.disabled = true);
+                } else {
+                    allAnswered = false;
+                }
+            });
+
+            if (!allAnswered) {
+                alert("Mohon jawab semua pertanyaan terlebih dahulu!"); // Fallback if missed, but stylized prompt preferred.
+                // Using simple alert here to avoid complex DOM for this small validation.
+                return;
+            }
+
+            const score = Math.round((correct / lkpdData.length) * 100);
+            document.getElementById('lkpd-score-display').innerText = score;
+            
+            document.getElementById('lkpd-submit').classList.add('hidden');
+            const resultDiv = document.getElementById('lkpd-result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.classList.add('pop');
+            
+            if (score > 60) playSound('win');
+            else playSound('wrong');
+        }
+
+    </script>
+</body>
+</html>
